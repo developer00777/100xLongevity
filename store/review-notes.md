@@ -12,7 +12,7 @@ How to test:
 2. On Intake, tap "See an example client first" to load sample data.
 3. Open Results, Matrix and Rules to see the scored assessment.
 4. Ask tab: tap any suggested question, then "Allow" on the consent card. The question and the sample results are sent to our server, which uses Anthropic's Claude model through OpenRouter to answer. No personal identifiers are sent to the AI provider.
-5. Account deletion: Rules → Account → "Delete my account" deletes the account and its data immediately.
+5. Account deletion: tap the round profile icon (top right) → Account → "Delete my account" deletes the account and its data immediately. "Sign out" is on the same screen.
 
 Methodology: each value is compared with the 100X Longevity Benchmark Matrix (fitness ranges age- and sex-adjusted; clinical ranges fixed). The Rules tab shows the full scoring method. The app repeatedly tells users to consult a qualified healthcare professional and to seek urgent care for serious symptoms.
 

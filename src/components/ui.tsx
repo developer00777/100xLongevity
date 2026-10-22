@@ -1,11 +1,13 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { ReactNode } from 'react';
-import { Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
+import { Alert, Platform, Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 import { TIERS, TierIndex } from '../engine/engine';
+import { LayoutMode, useLayoutMode } from '../state/LayoutMode';
 import { mono, useTheme } from '../theme';
 
 export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   const t = useTheme();
-  return <View style={[{ backgroundColor: t.surface, borderColor: t.line, borderWidth: 1, borderRadius: 16, padding: 16 }, style]}>{children}</View>;
+  return <View style={[{ backgroundColor: t.surface, borderColor: t.line, borderWidth: 1, borderRadius: 16, padding: 16, boxShadow: t.shadow }, style]}>{children}</View>;
 }
 
 export function H1({ children }: { children: ReactNode }) {
@@ -98,6 +100,49 @@ export function Bullets({ items }: { items: ReactNode[] }) {
           <View style={{ flex: 1 }}>{typeof x === 'string' ? <Body>{x}</Body> : x}</View>
         </View>
       ))}
+    </View>
+  );
+}
+
+// Alert.alert is a no-op on web, so the web build uses the browser's confirm dialog.
+export function confirmDestructive(title: string, message: string, action: string, onConfirm: () => void) {
+  if (Platform.OS === 'web') { if (window.confirm(`${title}\n\n${message}`)) onConfirm(); return; }
+  Alert.alert(title, message, [{ text: 'Cancel', style: 'cancel' }, { text: action, style: 'destructive', onPress: onConfirm }]);
+}
+
+// The signed-in account's first letter in a circle; the header shows it as the way into the account screen.
+export function Avatar({ email, size = 32 }: { email: string; size?: number }) {
+  const t = useTheme();
+  return (
+    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ fontSize: size * 0.45, fontWeight: '800', color: t.accentInk }}>{(email.trim()[0] ?? '?').toUpperCase()}</Text>
+    </View>
+  );
+}
+
+// Web only, on wide screens: switches between the phone layout and the full-width layout.
+export function LayoutSwitch() {
+  const t = useTheme();
+  const { mode, setMode, canSwitch } = useLayoutMode();
+  if (!canSwitch) return null;
+  const opts: [LayoutMode, React.ComponentProps<typeof Ionicons>['name'], string][] = [['mobile', 'phone-portrait-outline', 'Mobile'], ['web', 'desktop-outline', 'Web']];
+  return (
+    <View accessibilityRole="radiogroup" accessibilityLabel="Layout" style={{ flexDirection: 'row', padding: 3, borderRadius: 999, backgroundColor: t.surface2, borderWidth: 1, borderColor: t.line }}>
+      {opts.map(([m, icon, label]) => {
+        const on = mode === m;
+        return (
+          <Pressable
+            key={m}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: on }}
+            onPress={() => setMode(m)}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: on ? t.surface : 'transparent', boxShadow: on ? t.shadow : undefined }}
+          >
+            <Ionicons name={icon} size={15} color={on ? t.accent : t.muted} />
+            <Text style={{ fontSize: 13, fontWeight: '700', color: on ? t.ink : t.muted }}>{label}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }

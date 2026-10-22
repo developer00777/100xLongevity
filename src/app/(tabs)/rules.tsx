@@ -1,10 +1,7 @@
-import Constants from 'expo-constants';
-import { useState } from 'react';
-import { Alert, Linking, Platform, Pressable, ScrollView, Text, View } from 'react-native';
-import { Body, Bullets, Card, DISCLAIMER, H1, H2, Notice, Pill, Small } from '../../components/ui';
+import { router } from 'expo-router';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Body, Bullets, Card, DISCLAIMER, H1, H2, Pill, Small } from '../../components/ui';
 import { TierIndex } from '../../engine/engine';
-import { useAssessment } from '../../state/AssessmentContext';
-import { useAuth } from '../../state/AuthContext';
 import { useTheme } from '../../theme';
 
 const RULES: [TierIndex, string, string][] = [
@@ -25,18 +22,8 @@ const PROGRAMS: [TierIndex, string, string][] = [
 ];
 const MEALS = [['Under 60 kg', '1500', '1500', '1700'], ['60–70 kg', '1700', '1500', '2000'], ['70–80 kg', '2000', '1700', '2500'], ['80–100 kg', '2500', '2000', '3000'], ['Over 100 kg', '3000', '2500', '3000']];
 
-// Alert.alert is a no-op on web, so the web build uses the browser's confirm dialog.
-function confirmDestructive(title: string, message: string, action: string, onConfirm: () => void) {
-  if (Platform.OS === 'web') { if (window.confirm(`${title}\n\n${message}`)) onConfirm(); return; }
-  Alert.alert(title, message, [{ text: 'Cancel', style: 'cancel' }, { text: action, style: 'destructive', onPress: onConfirm }]);
-}
-
 export default function Rules() {
   const t = useTheme();
-  const { reset, loadExample, askConsent, setAskConsent } = useAssessment();
-  const { user, signOut, deleteAccount } = useAuth();
-  const [accountError, setAccountError] = useState<string | null>(null);
-  const privacyUrl = (Constants.expoConfig?.extra?.privacyPolicyUrl as string) || '';
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}>
       <View style={{ gap: 2 }}>
@@ -84,26 +71,10 @@ export default function Rules() {
         <Small>Body recomposition and maintenance use the baseline plan. Custom calories and macros are not calculated. Nutrition, training, supplement, sleep and fasting protocols are inside your assigned program in 100x Longevity.</Small>
       </Card>
       <Card style={{ gap: 12 }}>
-        <H2>About & data</H2>
+        <H2>About</H2>
         <Body muted>{DISCLAIMER}</Body>
         <Body muted>Your answers are stored only on this device. Ranges marked as scorecard estimates are pending medical review.</Body>
-        {privacyUrl ? <Pressable onPress={() => Linking.openURL(privacyUrl)} accessibilityRole="link"><Text style={{ color: t.accent, fontWeight: '800' }}>Privacy policy</Text></Pressable> : null}
-        {askConsent ? <Pressable onPress={() => setAskConsent(false)} accessibilityRole="button"><Text style={{ color: t.accent, fontWeight: '800' }}>Turn off sharing with Claude (Ask tab)</Text></Pressable> : null}
-        <Pressable onPress={loadExample} accessibilityRole="button"><Text style={{ color: t.accent, fontWeight: '800' }}>Load the example client</Text></Pressable>
-        <Pressable onPress={() => confirmDestructive('Delete all answers?', 'This clears every value you entered on this device.', 'Delete', reset)} accessibilityRole="button"><Text style={{ color: t.alertInk, fontWeight: '800' }}>Delete all my answers</Text></Pressable>
-        <Small>Version {Constants.expoConfig?.version ?? '1.0.0'}</Small>
-      </Card>
-      <Card style={{ gap: 12 }}>
-        <H2>Account</H2>
-        <Body muted>Signed in as {user?.email}</Body>
-        {accountError ? <Notice kind="alert">{accountError}</Notice> : null}
-        <Pressable onPress={signOut} accessibilityRole="button"><Text style={{ color: t.accent, fontWeight: '800' }}>Sign out</Text></Pressable>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => confirmDestructive('Delete your account?', 'This permanently deletes your account and the answers saved for it on this device.', 'Delete account', async () => setAccountError(await deleteAccount()))}
-        >
-          <Text style={{ color: t.alertInk, fontWeight: '800' }}>Delete my account</Text>
-        </Pressable>
+        <Pressable onPress={() => router.navigate('/account')} accessibilityRole="button"><Text style={{ color: t.accent, fontWeight: '800' }}>Account, privacy & data settings ›</Text></Pressable>
       </Card>
     </ScrollView>
   );
