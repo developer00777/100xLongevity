@@ -1,5 +1,4 @@
-// POST /api/ask: answers a signed-in user's question about their assessment with Claude Haiku 5.5
-// on Cloudflare Workers AI (the AI binding). OpenRouter is used only when no AI binding exists (e.g. scripts/bench-ask.ts).
+// POST /api/ask: answers a signed-in user's question about their assessment through OpenRouter.
 import { currentUser } from './auth.js';
 import { json, readJson } from './http.js';
 
@@ -24,7 +23,7 @@ export async function handleAsk(request, env) {
   if (request.method !== 'POST') return json({ error: 'Use POST' }, 405);
   const user = await currentUser(request, env);
   if (!user) return json({ error: 'unauthorized' }, 401);
-  if (!env.AI && !env.OPENROUTER_API_KEY) return json({ error: 'not_configured' }, 503);
+  if (!env.OPENROUTER_API_KEY) return json({ error: 'not_configured' }, 503);
 
   const body = await readJson(request);
   if (!body) return json({ error: 'Invalid JSON' }, 400);
@@ -37,7 +36,7 @@ export async function handleAsk(request, env) {
   while (clean.length && clean[0].role !== 'user') clean.shift();
   if (!clean.length || clean[clean.length - 1].role !== 'user') return json({ error: 'Last message must be from the user' }, 400);
 
-  // Per-account hourly limit, so one account cannot run up the model bill.
+  // Per-account hourly limit, so one account cannot run up the OpenRouter bill.
   const now = Date.now();
   const used = await env.DB.prepare('SELECT COUNT(*) AS n FROM ask_events WHERE user_id = ? AND at > ?').bind(user.id, now - HOUR_MS).first('n');
   if (used >= Number(env.ASK_LIMIT_PER_HOUR || 30)) return json({ error: 'rate_limited' }, 429);
@@ -46,36 +45,6 @@ export async function handleAsk(request, env) {
     env.DB.prepare('DELETE FROM ask_events WHERE user_id = ? AND at < ?').bind(user.id, now - 24 * HOUR_MS),
   ]);
 
-  const system = `${RULES}\n\n${context}`;
-  const maxTokens = Number(env.MAX_TOKENS || 700);
-  const answer = env.AI ? await askWorkersAI(env, system, clean, maxTokens) : await askOpenRouter(env, system, clean, maxTokens);
-  if (answer.error) return json({ error: answer.error }, answer.status);
-  return json({ answer: answer.text });
-}
-
-// Cloudflare Workers AI binding — Anthropic Messages format (system is a top-level string, reply is content blocks).
-async function askWorkersAI(env, system, messages, maxTokens) {
-  let data;
-  try {
-    data = await env.AI.run(env.MODEL || 'anthropic/claude-haiku-5.5', { system, messages, max_tokens: maxTokens });
-  } catch (e) {
-    const msg = String(e?.message || e);
-    console.error('workers-ai', msg.slice(0, 500));
-    if (/429|rate|capacity|too many/i.test(msg)) return { error: 'rate_limited', status: 429 };
-    return { error: 'upstream_error', status: 502 };
-  }
-  const blocks = Array.isArray(data?.content) ? data.content : [];
-  const text = blocks.filter((b) => b?.type === 'text' && typeof b.text === 'string').map((b) => b.text).join('').trim()
-    || (typeof data?.response === 'string' ? data.response.trim() : '');
-  if (!text) {
-    console.error('workers-ai empty', data?.stop_reason, JSON.stringify(data).slice(0, 500));
-    return { error: 'empty', status: 502 };
-  }
-  return { text };
-}
-
-// Fallback: OpenRouter (used by scripts/bench-ask.ts, which has no AI binding).
-async function askOpenRouter(env, system, messages, maxTokens) {
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -85,23 +54,25 @@ async function askOpenRouter(env, system, messages, maxTokens) {
     },
     body: JSON.stringify({
       model: env.MODEL,
-      max_tokens: maxTokens,
+      max_tokens: Number(env.MAX_TOKENS || 700),
+      // Models on OpenRouter reason by default, and reasoning tokens count against max_tokens.
       reasoning: { effort: env.REASONING_EFFORT || 'none' },
+      // Health data: only route to providers that do not store or train on prompts.
       provider: { data_collection: 'deny' },
-      messages: [{ role: 'system', content: system }, ...messages],
+      messages: [{ role: 'system', content: `${RULES}\n\n${context}` }, ...clean],
     }),
   });
-  if (res.status === 429) return { error: 'rate_limited', status: 429 };
+  if (res.status === 429) return json({ error: 'rate_limited' }, 429);
   if (!res.ok) {
     console.error('openrouter', res.status, (await res.text()).slice(0, 500));
-    return { error: 'upstream_error', status: 502 };
+    return json({ error: 'upstream_error' }, 502);
   }
   const data = await res.json();
   const choice = data.choices?.[0];
-  const text = typeof choice?.message?.content === 'string' ? choice.message.content.trim() : '';
-  if (!text) {
+  const answer = typeof choice?.message?.content === 'string' ? choice.message.content.trim() : '';
+  if (!answer) {
     console.error('openrouter empty', choice?.finish_reason, JSON.stringify(choice?.error ?? data.error ?? null));
-    return { error: 'empty', status: 502 };
+    return json({ error: 'empty' }, 502);
   }
-  return { text };
+  return json({ answer });
 }
