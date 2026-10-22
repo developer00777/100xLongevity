@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    image: longevity100x-web
+    ports:
+      - "8787:8787"
+    environment:
+      # Read from .env next to this file (never commit it). Leave empty to run without Ask.
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+    volumes:
+      # Local D1 database (accounts and sessions).
+      - wrangler-state:/app/server/ask-worker/.wrangler
+    restart: unless-stopped
+
+volumes:
+  wrangler-state:

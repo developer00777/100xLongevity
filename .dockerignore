@@ -1,0 +1,17 @@
+**/node_modules
+dist
+web-build
+.expo
+.wrangler
+**/.wrangler
+**/.dev.vars*
+.env*
+.git
+.claude
+store
+scripts
+ios
+android
+*.pdf
+Dockerfile
+docker-compose.yml

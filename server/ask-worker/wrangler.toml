@@ -1,0 +1,28 @@
+name = "longevity100x-ask"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# Web build of the app (`npx expo export -p web` at the repo root writes dist/).
+# Static files are served directly; only /api/* runs the Worker.
+[assets]
+directory = "../../dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+# Accounts and sessions. Before the first deploy run `npx wrangler d1 create longevity100x`,
+# paste the printed id below, then `npx wrangler d1 migrations apply longevity100x --remote`.
+[[d1_databases]]
+binding = "DB"
+database_name = "longevity100x"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[vars]
+# Ask questions allowed per account per hour.
+ASK_LIMIT_PER_HOUR = "30"
+# Any OpenRouter model id (https://openrouter.ai/models). Compare candidates with scripts/bench-ask.ts.
+MODEL = "anthropic/claude-haiku-5.5"
+MAX_TOKENS = "700"
+# OpenRouter models reason by default and reasoning counts against MAX_TOKENS; "none" turns it off.
+REASONING_EFFORT = "none"
