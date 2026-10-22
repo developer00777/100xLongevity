@@ -15,7 +15,7 @@ run_worker_first = ["/api/*"]
 [[d1_databases]]
 binding = "DB"
 database_name = "longevity100x"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "087c7bc8-a7d8-480d-9828-99c2d044bd00"
 migrations_dir = "migrations"
 
 [vars]
