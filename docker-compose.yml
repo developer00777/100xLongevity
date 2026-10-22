@@ -5,8 +5,10 @@ services:
     ports:
       - "8787:8787"
     environment:
-      # Read from .env next to this file (never commit it). Leave empty to run without Ask.
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      # Read from .env next to this file (never commit it). Ask uses Workers AI, which wrangler dev
+      # runs on Cloudflare, so it needs a token with Workers AI permission. Leave empty to run without Ask.
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
     volumes:
       # Local D1 database (accounts and sessions).
       - wrangler-state:/app/server/ask-worker/.wrangler
