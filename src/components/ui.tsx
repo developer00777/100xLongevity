@@ -147,6 +147,19 @@ export function LayoutSwitch() {
   );
 }
 
+// App wordmark: "100X" on an accent tile, then "Longevity".
+export function Brand() {
+  const t = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <View style={{ backgroundColor: t.accent, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3 }}>
+        <Text style={{ fontSize: 14, fontWeight: '900', color: t.accentInk, letterSpacing: -0.3 }}>100X</Text>
+      </View>
+      <Text style={{ fontSize: 17, fontWeight: '800', color: t.ink, letterSpacing: -0.3 }}>Longevity</Text>
+    </View>
+  );
+}
+
 export const DISCLAIMER = 'The Health Tier is a benchmark-based scorecard estimate built on the 100X Longevity Benchmark Matrix. It is not a diagnosis and not medical advice. Do not start, stop or change medication based on this assessment.';
 
 export const s = StyleSheet.create({

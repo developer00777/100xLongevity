@@ -51,9 +51,11 @@ export default function Results() {
     <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}>
       {A.urgent && <Notice kind="alert">{URGENT}</Notice>}
 
-      <Card style={{ gap: 14 }}>
+      {/* Hero: tinted with the tier's own color (8-digit hex adds ~7% alpha). */}
+      <Card style={{ gap: 14, backgroundColor: t.tiers[tier] + '12', borderColor: t.tiers[tier] + '55', borderWidth: 1.5 }}>
         <View>
-          <Text style={{ fontSize: 76, lineHeight: 80, fontWeight: '800', letterSpacing: -3, color: t.tiers[tier] }}>{TIERS[tier]}</Text>
+          <Label>Your Health Tier</Label>
+          <Text style={{ fontSize: 76, lineHeight: 84, fontWeight: '800', letterSpacing: -3, color: t.tiers[tier] }}>{TIERS[tier]}</Text>
           <Text style={{ fontSize: 15, fontWeight: '700', color: t.muted }}>{EQUIV[tier]}</Text>
         </View>
         <View style={{ flexDirection: 'row', gap: 4 }} accessibilityLabel={`Tier ladder. Current ${TIERS[tier]}, target ${A.target.t}`}>

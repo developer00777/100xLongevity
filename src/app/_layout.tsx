@@ -37,7 +37,7 @@ function Gate() {
               headerShadowVisible: false,
               headerLeft: () => null,
               headerRight: () => (
-                <Pressable accessibilityRole="button" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={10}>
+                <Pressable accessibilityRole="button" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={10} style={{ marginRight: 12 }}>
                   <Text style={{ fontSize: 16, fontWeight: '800', color: t.accent }}>Done</Text>
                 </Pressable>
               ),

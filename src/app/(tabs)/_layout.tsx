@@ -1,11 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Redirect, router, Tabs } from 'expo-router';
 import { ColorValue, Pressable, Text, useWindowDimensions, View } from 'react-native';
-import { Avatar, LayoutSwitch } from '../../components/ui';
+import { Avatar, Brand, LayoutSwitch } from '../../components/ui';
 import { TIERS } from '../../engine/engine';
 import { useAssessment } from '../../state/AssessmentContext';
 import { useAuth } from '../../state/AuthContext';
 import { useLayoutMode } from '../../state/LayoutMode';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { mono, useTheme } from '../../theme';
 
 function TierChip() {
@@ -29,7 +30,7 @@ function HeaderRight() {
   const { user, signOut } = useAuth();
   const { wide } = useLayoutMode();
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginRight: 14 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginRight: 12 }}>
       {wide ? <LayoutSwitch /> : null}
       <TierChip />
       <Pressable accessibilityRole="button" accessibilityLabel="Account and settings" onPress={() => router.navigate('/account')} hitSlop={6}>
@@ -37,14 +38,14 @@ function HeaderRight() {
       </Pressable>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Sign out"
+        accessibilityLabel="Log out"
         onPress={signOut}
         hitSlop={6}
-        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, height: 32, paddingHorizontal: wide ? 12 : 0, width: wide ? undefined : 32, justifyContent: 'center',
+        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 5, height: 32, paddingHorizontal: 10, justifyContent: 'center',
           borderRadius: 999, borderWidth: 1, borderColor: t.line, backgroundColor: pressed ? t.surface2 : t.surface })}
       >
-        <Ionicons name="log-out-outline" size={17} color={t.ink} />
-        {wide ? <Text style={{ fontSize: 14, fontWeight: '700', color: t.ink }}>Sign out</Text> : null}
+        <Ionicons name="log-out-outline" size={16} color={t.alertInk} />
+        <Text style={{ fontSize: 13, fontWeight: '800', color: t.alertInk }}>Log out</Text>
       </Pressable>
     </View>
   );
@@ -61,20 +62,24 @@ export default function TabsLayout() {
   const { acknowledged } = useAssessment();
   const { wide } = useLayoutMode();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   if (!acknowledged) return <Redirect href="/welcome" />;
   // Web layout: sidebar navigation, and screens kept to a readable width in the space beside it.
   const side = Math.max(0, (width - SIDEBAR - CONTENT) / 2);
   return (
     <Tabs
       screenOptions={{
-        headerTitle: () => <Text style={{ fontSize: 19, fontWeight: '800', color: t.ink }}><Text style={{ color: t.accent }}>100X</Text> Longevity</Text>,
+        headerTitle: () => <Brand />,
         headerTitleAlign: 'left',
         headerRight: () => <HeaderRight />,
-        headerStyle: { backgroundColor: t.bg },
+        headerStyle: wide ? { backgroundColor: t.bg } : { backgroundColor: t.surface, borderBottomWidth: 1, borderBottomColor: t.line },
         headerShadowVisible: false,
         tabBarActiveTintColor: t.accent,
         tabBarInactiveTintColor: t.muted,
-        tabBarStyle: wide ? { backgroundColor: t.surface, borderRightColor: t.line, width: SIDEBAR, paddingTop: 12 } : { backgroundColor: t.surface, borderTopColor: t.line },
+        // The active tab sits on a soft pill.
+        tabBarActiveBackgroundColor: t.surface2,
+        tabBarItemStyle: { borderRadius: 12, marginHorizontal: wide ? 8 : 3, marginVertical: wide ? 2 : 0 },
+        tabBarStyle: wide ? { backgroundColor: t.surface, borderRightColor: t.line, width: SIDEBAR, paddingTop: 12 } : { backgroundColor: t.surface, borderTopColor: t.line, height: 64 + insets.bottom, paddingTop: 6, paddingBottom: 8 + insets.bottom },
         tabBarLabelStyle: { fontWeight: '700', fontSize: wide ? 15 : 11 },
         ...(wide ? { tabBarPosition: 'left' as const, tabBarVariant: 'material' as const, tabBarLabelPosition: 'beside-icon' as const } : {}),
         sceneStyle: { backgroundColor: t.bg, paddingHorizontal: wide ? side : 0 },
