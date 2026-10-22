@@ -18,15 +18,11 @@ database_name = "longevity100x"
 database_id = "087c7bc8-a7d8-480d-9828-99c2d044bd00"
 migrations_dir = "migrations"
 
-# Workers AI — Ask runs Claude Haiku 5.5 through this binding (billed to the Cloudflare account, no API key).
-[ai]
-binding = "AI"
-
 [vars]
 # Ask questions allowed per account per hour.
 ASK_LIMIT_PER_HOUR = "30"
-# Workers AI model id (dash.cloudflare.com → AI → Models).
+# Any OpenRouter model id (https://openrouter.ai/models). Compare candidates with scripts/bench-ask.ts.
 MODEL = "anthropic/claude-haiku-5.5"
 MAX_TOKENS = "700"
-# Only used by the OpenRouter fallback (no AI binding, e.g. scripts/bench-ask.ts).
+# OpenRouter models reason by default and reasoning counts against MAX_TOKENS; "none" turns it off.
 REASONING_EFFORT = "none"
